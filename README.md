@@ -1,6 +1,6 @@
-# Assistant - Is Your Friendly Bot
+# Assistant
 
-Assistant is your friendly Facebook Messenger companion designed to help you with cool features like smart AI responses, chatting with Bard for info, and finding awesome music and videos. It's built using the fca-unofficial library and plays around with APIs to make studying a bit more fun! 🚀
+Introducing Assistant, our dynamic Facebook Messenger bot currently in development. This amicable companion is poised to deliver a delightful amalgamation of AI-driven responses, engaging conversations with Bard, and exploration of music and video content. Stay tuned as we enhance its features to reveal an even more remarkable experience!
 
 ## Features
 1️⃣ AI-Powered Responses: Hexabot utilizes advanced AI technologies, including the OpenAI API, to provide intelligent responses, assisting students with inquiries across various subjects.
@@ -35,4 +35,3 @@ Contributions are encouraged! Follow these steps to contribute:
 
 - The base of this project is built upon [fca-unofficial](https://github.com/VangBanLaNhat/fca-unofficial) library by VangBanLaNhat. And Also thjd base on the project GoatBot by ntkhang03  .[goat-bot-v2](https://github.com/ntkhang03/Goat-Bot-V2)
 - This Bot Develop By Gerald Villaver
-
