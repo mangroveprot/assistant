@@ -8,76 +8,125 @@ const app = express();
 const eventAction = require('./0assistant/handler/eventAction.js');
 const appStatePath = path.join(process.cwd(), "json", "appstate.json");
 const commandPath = path.join(__dirname, "scripts", "commands");
+const eventPath = path.join(__dirname, "scripts", "events");
 const configFilePath = path.join(process.cwd(), "json", "config.json");
 const utils = require("./utils.js");
 const ProgressBar = require("progress");
 global.utils = utils;
-const commands = {};
+const line = global.utils.line;
 const commandCooldowns = new Map();
 const createFuncMessage = global.utils.message;
+const AdminsBot = global.utils.adminsBot;
 //━━━━━━━━━━━━━━━━━━━//
 process.on('unhandledRejection', error => console.log(error));
 process.on('uncaughtException', error => console.log(error));
 
 //━━━━━━━━━━━━━━━━━━━COmmandLoader━━━━━━━━━
+const commands = {};
+const commandErrors = [];
+const loadedCommands = [];
+const eventHandlers = [];
+const eventErrors = [];
 async function loadCommands() {
-  const commandFiles = fs.readdirSync(commandPath).filter((file) => file.endsWith(".js"));
-  const totalCommands = commandFiles.length;
-  const bar = new ProgressBar(chalk.hex('#ffd700')(":bar") + " :percent :etas", {
-    total: commandFiles.length,
-    width: 40,
-    complete: "█",
-    incomplete: " ",
-    renderThrottle: 1,
-  });
+  try {
+    const commandFiles = fs.readdirSync(commandPath).filter((file) => file.endsWith(".js"));
+    const eventFiles = (await fs.promises.readdir(eventPath)).filter((file) => path.extname(file) === ".js");
+    const totalCommands = commandFiles.length;
+    const bar = new ProgressBar(chalk.hex('#ffd700')(":bar") + " :percent :etas", {
+      total: commandFiles.length + eventFiles.length,
+      width: 40,
+      complete: "█",
+      incomplete: " ",
+      renderThrottle: 1,
+    });
 
-  const commandErrors = [];
-  const loadedCommands = [];
+    for (let i = 0; i < totalCommands; i++) {
+      const file = commandFiles[i];
+      const startTime = new Date();
+      const commandName = path.basename(file, ".js");
 
-  for (let i = 0; i < totalCommands; i++) {
-    const file = commandFiles[i];
-    const startTime = new Date();
-    const commandName = path.basename(file, ".js");
-
-    try {
-      commands[commandName] = require(path.join(commandPath, file));
-      loadedCommands.push(file);
-    } catch (error) {
-      commandErrors.push({
-        fileName: file, error
-      });
-    }
-    bar.tick();
-  }
-
-  if (bar.complete) {
-    console.log(chalk.green(`\nCommands  Loaded: ${totalCommands - commandErrors.length}`));
-
-    if (commandErrors.length > 0) {
-      console.log(chalk.red(`WARN: ${commandErrors.length} file${commandErrors.length === 1 ? '': 's'} could not be integrated:`));
-
-      for (const {
-        fileName, error
-      } of commandErrors) {
-        console.log(chalk.red(`Error detected in file: ${fileName}`));
-        console.log(chalk.red(`Reason: ${error}`));
-        if (error.stack) {
-          const stackLines = error.stack.split('\n');
-          const lineNumber = stackLines[1].match(/:(\d+):\d+\)$/)[1];
-          console.log(chalk.red(`Line: ${lineNumber}`));
-        }
-        console.log(chalk.red(`━━━━━━━━━━━━━━━━━━━`));
+      try {
+        commands[commandName] = require(path.join(commandPath, file));
+        loadedCommands.push(file);
+      } catch (error) {
+        commandErrors.push({
+          fileName: file, error
+        });
       }
-      console.log();
+      bar.tick();
     }
 
-    console.log(`[ ${loadedCommands.join(', ')} ]`);
+    for (const file of eventFiles) {
+      try {
+        const eventHandler = require(path.join(eventPath, file));
+        eventHandlers.push({
+          name: path.basename(file, '.js'),
+          module: eventHandler
+        }); // Push object with file name
+      } catch (error) {
+        const errorMessage = `Error loading event handler '${file}': ${error.message}`;
+        const errorLineMatch = error.stack.match(/:(\d+):\d+\)$/); // Extract line number from stack trace
+        const lineNumber = errorLineMatch ? errorLineMatch[1]: 'unknown';
+        eventErrors.push({
+          fileName: file,
+          error: errorMessage,
+          lineNumber: lineNumber
+        });
+      }
+
+      bar.tick();
+    }
+
+    if (bar.complete) {
+      console.log(chalk.green(`\nCommands  Loaded: ${totalCommands - commandErrors.length}`));
+
+      if (commandErrors.length > 0) {
+        console.log(chalk.red(`WARN: ${commandErrors.length} file${commandErrors.length === 1 ? '': 's'} could not be integrated:`));
+
+        for (const {
+          fileName, error
+        } of commandErrors) {
+          console.log(chalk.red(`Error detected in file: ${fileName}`));
+          console.log(chalk.red(`Reason: ${error}`));
+          if (error.stack) {
+            const stackLines = error.stack.split('\n');
+            const lineNumber = stackLines[1].match(/:(\d+):\d+\)$/)[1];
+            console.log(chalk.red(`Line: ${lineNumber}`));
+          }
+        }
+        console.log();
+      }
+
+      if (eventErrors.length > 0) {
+        console.log(chalk.red(`WARN: ${eventErrors.length} event file${eventErrors.length === 1 ? '': 's'} could not be loaded:`));
+
+        for (const {
+          fileName, error, lineNumber
+        } of eventErrors) {
+          console.log(chalk.red(`Error loading event handler '${fileName}' at line ${lineNumber}:`));
+          console.log(chalk.red(`Reason: ${error}`));
+        }
+        console.log();
+      }
+
+      console.log(`[ ${loadedCommands.join(', ')} ]`);
+      if (eventHandlers.length > 0) {
+        console.log(chalk.green(`\nEvents Loaded: ${eventHandlers.length}`));
+        console.log(`[ ${eventHandlers.map(handler => handler.name).join(', ')} ]`);
+      } else {
+        console.log("No events");
+      }
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 
+
+
 //━━━━━━━━━━━━━━━━━━━Main━━━━━━━━━━━━━━━━━━
 function assistantStart() {
-  loadCommands();
+
   try {
     const fileContent = fs.readFileSync(configFilePath, "utf8");
     const config = JSON.parse(fileContent);
@@ -101,12 +150,15 @@ function assistantStart() {
     } = config.assistant;
     const {
       adminsBot
-    } = global.utils;
+    } = global.utils
+    loadCommands();
+    //━━━━-BOT-START━━━━━━━━//
     assistant_start((err, api) => {
       if (err) {
         log.error(`${err}`);
         return;
       }
+
       const id = api.getCurrentUserID();
 
       api.getUserInfo(id, async (err, ret) => {
@@ -116,10 +168,8 @@ function assistantStart() {
         }
 
         const accountName = ret[id].name;
-        let botPrefix = hasPrefix ? prefix: "No Prefix";
-        let admins = [];
-
-        const AdminsBot = global.utils.adminsBot;
+        const botPrefix = hasPrefix ? prefix: "No Prefix";
+        const admins = [];
 
         for (const adminId of AdminsBot) {
           try {
@@ -188,11 +238,56 @@ function assistantStart() {
           const message = createFuncMessage(api, event);
           // Event Actions
           eventAction.handleEvent(adminsBot, api, event);
-
+          for (const handler of eventHandlers) {
+            if (handler.module.onStart) {
+              try {
+                await handler.module.onStart({
+                  message, event, api
+                });
+              } catch (error) {
+                log.error(`Error executing onStart method of event handler '${handler.name}': ${error}`);
+              }
+            }
+          }
           // Get Command And Args Start
           let command,
           args,
           commandName;
+          for (const handler of eventHandlers) {
+            if (handler.module && typeof handler.module.onStart === 'function') {
+              try {
+                await handler.module.onStart({
+                  message, event, api
+                });
+              } catch (error) {
+                log.error(`Error executing onStart method of event handler '${handler.name}': ${error}`);
+              }
+            } else {
+              log.error(`Event handler '${handler.name}' does not have a valid onStart method`);
+            }
+          }
+          console.log(event.logMessageType);
+          if (event.logMessageType == "log:subscribe") {
+            message.send("Ayw");
+          }
+          if (event.logMessageType == "log:subscribe") {
+            return async function () {
+              const hours = getTime("HH");
+              const {
+                threadID
+              } = event;
+              message.send("Hi");
+              const nickNameBot = config.assistant.botNickName;
+
+              const dataAddedParticipants = event.logMessageData.addedParticipants;
+              // if new member is bot
+              if (dataAddedParticipants.some((item) => item.userFbId == api.getCurrentUserID())) {
+                if (nickNameBot)
+                  await api.changeNickname(nickNameBot, threadID, api.getCurrentUserID());
+                return message.send("Welcome");
+              }
+            }
+          }
 
           const {
             senderID,
@@ -305,7 +400,8 @@ function assistantStart() {
                     console.error(errorMessage);
                   }
                 } catch (error) {
-                  const errorMessage = `Error executing onStart: ${error.message}`;
+                  const errorDetails = error.stack.split('\n').slice(0, 3).join('\n');
+                  const errorMessage = `Error in command '${commandName}': ${errorDetails}`;
                   api.sendMessage(errorMessage, event.threadID, event.messageID);
                   log.error(error);
                 }

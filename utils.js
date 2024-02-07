@@ -4,7 +4,7 @@ const path = require("path");
 const mimeDB = require("mime-db");
 const axios = require("axios");
 const configPath = path.join(__dirname, 'json', 'config.json');
-const line = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+const line = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
 
 //━━━━━━━━━Read Config━━━━━━━━━━//
 const configContent = fs.readFileSync(configPath, 'utf-8');

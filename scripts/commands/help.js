@@ -42,7 +42,8 @@ module.exports = {
           description,
           usage,
           author,
-          version
+          version,
+          example
         } = reqCmd.config;
         api.sendMessage(`「 ${name || "Guide:"} 」
           📝 Created by: ${author || "Anonymous"}
@@ -50,7 +51,9 @@ module.exports = {
           🔎 Description:
           ${description || "Its a mystery"}
           💡 Usage:
-          ${name || "No usage available."}`, event.threadID);
+          ${name || "No usage available."}
+          ✨Example Usage
+          ${example || "No exmaple available."}`, event.threadID);
       } catch (error) {
         api.sendMessage(`Command '${cmdName}' not found.`, event.threadID, event.messageID);
       }

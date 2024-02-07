@@ -1,6 +1,6 @@
 {
   "createdBy": {
-    "GitHub": "https:github.com/mangroveprot",
+    "GitHub": "https://github.com/mangroveprot",
     "Facebook": "www.facebook.com/gerald.c.villaver"
   },
   "admin": {
@@ -24,6 +24,7 @@
     "forceLogin": true
   },
   "assistant": {
+    "botNickName": "Assistant",
     "prefix": ".",
     "hasPrefix": false,
     "autoRestartTime": 3600000
@@ -40,6 +41,5 @@
     "session": false,
     "storeId": "0",
     "value": "aAj-WqvDgVdxNRsF731Oh3OGyCFY3okNocTEHOfq_0eJ6TEgbtffj8rapaj0Sdk8yj55Ug."
-  }
-  ]
+  }]
 }

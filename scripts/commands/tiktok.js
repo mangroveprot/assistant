@@ -101,7 +101,7 @@ module.exports = {
 
 async function query(url, isMp3 = false) {
   const res = await axios.get("https://ssstik.io/en");
-  const tt = res.data.split(`"tt:'`)[1].split(`'"`)[0];
+  const tt = res.data.split(`s_tt = '`)[1].split(`',`)[0];
   const {
     data: result
   } = await axios({
