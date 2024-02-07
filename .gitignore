@@ -1,3 +1,5 @@
 node_modules/
-json/appstate.json/
-0assistant/LogInCopy.js/
+0assistant/*
+!0assistant/handler/
+!0assistant/login.js
+file.js
