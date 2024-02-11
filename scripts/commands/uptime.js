@@ -3,8 +3,12 @@ const startTime = new Date();
 module.exports = {
   config: {
     name: 'uptime',
-    description: 'uptime',
-    author: 'ViLLAVER'
+    description: 'Monitor the bots uptime',
+    author: 'ViLLAVER',
+    cooldown: 5,
+    role: 0,
+    usage: "{n} or {p}{n}",
+    example: "uptime"
   },
   onStart: async function ({
     api, event
@@ -18,7 +22,11 @@ module.exports = {
       const seconds = Math.floor(uptimeInSeconds % 60);
 
       const systemInfo = `
-      Uptime: ${hours}h ${minutes}m ${seconds}s
+      ┌────[ Uptime ]────⦿
+      │
+      ⏱️ | ${hours}h ${minutes}m ${secods}s
+      │
+      └────────⦿
       `;
 
       api.sendMessage(systemInfo, event.threadID, event.messageID);

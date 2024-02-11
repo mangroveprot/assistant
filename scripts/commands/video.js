@@ -1,7 +1,8 @@
 const axios = require("axios");
 const {
   getStreamFromURL,
-  getName
+  getName,
+  API
 } = global.utils;
 
 module.exports = {
@@ -41,7 +42,7 @@ module.exports = {
       },
         true);
 
-      const res = await axios.get(`https://rlrvn7-5000.csb.app/api/video?title=${prompt}&uid=${senderID}&name=${name}`);
+      const res = await axios.get(`${API}/api/video?title=${prompt}&uid=${senderID}&name=${name}`);
       const {
         title, video
       } = res.data;

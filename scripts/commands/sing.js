@@ -1,7 +1,8 @@
 const axios = require("axios");
 const {
   getStreamFromURL,
-  getName
+  getName,
+  API
 } = global.utils;
 
 module.exports = {
@@ -13,6 +14,7 @@ module.exports = {
     role: 0,
     description: "Download Audo From Youtube. 25mb is the limit of the audio."
   },
+
   onStart: async function ({
     message, event, args, api
   }) {
@@ -26,15 +28,15 @@ module.exports = {
     }
     try {
       const name = getName(api, senderID);
-      
+
       api.setMessageReaction("🎧", event.messageID, (err) => {
         if (err) console.error(err);
       },
         true);
-        
-        const waitingQuery = await message.reply("⏳ | Please wait while searching for your song!");
 
-      const res = await axios.get(`https://rlrvn7-5000.csb.app/api/sing?song=${prompt}&uid=${senderID}&name=${name}`);
+      const waitingQuery = await message.reply("⏳ | Please wait while searching for your song!");
+
+      const res = await axios.get(`${API}/api/sing?song=${prompt}&uid=${senderID}&name=${name}`);
       const {
         music,
         title
@@ -42,13 +44,17 @@ module.exports = {
       const attachment = await getStreamFromURL(music);
 
       message.reply({
-        body: title, attachment: attachment
-      }, async (err, info) => {
-        await message.unsend((await waitingQuery).messageID);
-      });
+        body: title,
+        attachment: attachment
+      },
+        async (err, info) => {
+          await message.unsend((await waitingQuery).messageID);
+        });
     } catch (error) {
       console.error(error);
-      api.sendMessage(`${error}`, event.threadID, event.messageID);
+      api.sendMessage(`${error}`,
+        event.threadID,
+        event.messageID);
     }
   },
 };

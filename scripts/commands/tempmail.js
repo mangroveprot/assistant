@@ -19,7 +19,7 @@ module.exports = {
       case "generate":
         const tag = args[1];
         if (!tag) {
-          await api.sendMessage("⚠️ Please provide a tag for the email address. Use -gen [tag]", event.threadID);
+          await api.sendMessage("⚠️ | Please provide a tag for the email address. For more info type 'help tempmail' for more info on this command", event.threadID);
           return;
         }
         const email = `2ciu8.${tag}@inbox.testmail.app`;

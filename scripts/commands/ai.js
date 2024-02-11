@@ -1,6 +1,7 @@
 const axios = require("axios");
 const {
-  getName
+  getName,
+  API
 } = global.utils;
 module.exports = {
   config: {
@@ -55,8 +56,7 @@ module.exports = {
       const waitingMessage = await message.reply(waitQue);
       const name = await getName(api, userID);
 
-      const response = await axios.get(
-        `https://rlrvn7-5000.csb.app/api/ai?prompt=${prompt}&uid=${userID}&name=${name}`
+      const response = await axios.get(`  ${API}/api/ai?prompt=${prompt}&uid=${userID}&name=${name}`
       );
       const res = response.data.result;
       message.reply({

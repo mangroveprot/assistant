@@ -1,7 +1,8 @@
 const axios = require("axios");
 const {
   getStreamFromURL,
-  getName
+  getName,
+  API
 } = global.utils;
 
 module.exports = {
@@ -56,7 +57,7 @@ module.exports = {
         event.messageID
       );
 
-      const res = await axios.get(`https://api-t86a.onrender.com/api/gimage?search=${encodeURIComponent(query)}&limit=${numResults}&name=${name}&uid=${userID}`);
+      const res = await axios.get(`${API}/api/gimage?search=${encodeURIComponent(query)}&limit=${numResults}&name=${name}&uid=${userID}`);
       const result = res.data.data;
       const attachment = [];
 

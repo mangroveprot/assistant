@@ -1,7 +1,8 @@
 const axios = require("axios");
 const {
   getStreamFromURL,
-  getName
+  getName,
+  API
 } = global.utils;
 
 module.exports = {
@@ -9,9 +10,11 @@ module.exports = {
     name: "imagine",
     version: "1.0",
     author: "ViLLAVER",
+    description: "Text-to-image AI, create an image base on your prompt.",
     cooldown: 5,
     role: 0,
-    category: "ai",
+    usage: "{p}{n} <your imagination>",
+    example: "imagine car"
   },
   onStart: async function ({
     message,
@@ -39,7 +42,7 @@ module.exports = {
 
     try {
       const response = await axios.get(
-        `https://rlrvn7-5000.csb.app/api/imagine?prompt=${prompt}`
+        `${API}/api/imagine?prompt=${prompt}`
       );
       const result = response.data;
       let content = result.result;
@@ -48,16 +51,18 @@ module.exports = {
         return message.reply(`Error: ${response.data.error}`);
       }
       if (result.images && result.images.length > 0) {
-        for (let url of result.images) {
+        for (let image of result.images) {
           try {
-            const stream = await getStreamFromURL(url);
+            const stream = await getStreamFromURL(image.url);
             if (stream) {
               attachment.push(stream);
             }
           } catch (error) {
-            console.error(`error: ${url}`);
+            console.error(`error fetching image from URL: ${image.url}`, error);
           }
         }
+      } else {
+        console.error("No images found in the API response.");
       }
 
       await message.reply({

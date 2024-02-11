@@ -1,38 +1,17 @@
-const {
-  adminsBot
-} = global.utils;
+const { removeHomeDir, log } = global.utils;
+
 module.exports = {
   config: {
     name: "eval",
-    description: "Executes the provided JavaScript code",
-    usage: ":eval <code>",
-    author: "LiANE",
-    cooldown: 2,
-    role: 1,
+    version: "1.5",
+    author: "NTKhang",
+    cooldown: 5,
+    role: 2,
+    category: "owner",
   },
-  onStart: async function ({
-    api, event
-  }) {
-    const {
-      threadID,
-      messageID,
-      senderID
-    } = event;
-    try {
-      
-      if (!adminsBot.includes(senderID)) {
-        api.sendMessage("You do not have permission to use this command.", threadID, messageID);
-        return;
-      }
 
-      const args = event.body.split(" ");
-      const code = args.slice(1).join(" ");
-      eval(code);
-    } catch (error) {
-      api.sendMessage(`🔥 | Oops! may iror
-        Error: ${error.message}
-
-        `, threadID, messageID);
-    }
-  },
+  onStart: async function ({ api, args, message }) {
+    const cmd = `(async () => { try { ${args.join(" ")} } catch (err) { log.err("eval command", err); message.send("err\\n" + (err.stack ? removeHomeDir(err.stack) : removeHomeDir(JSON.stringify(err, null, 2) || ""))); } })()`;
+    eval(cmd);
+  }
 };

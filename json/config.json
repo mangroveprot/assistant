@@ -5,12 +5,13 @@
   },
   "admin": {
     "author": "ViLLAVER",
-    "adminBot": [
+    "adminsBot": [
       "100055592632190",
       "100040690662149",
       "100027876517873",
       "61550543897343"
-    ]
+    ],
+    "API": "https://r4fxgk-5000.csb.app"
   },
   "settings": {
     "system": true,
@@ -25,21 +26,8 @@
   },
   "assistant": {
     "botNickName": "Assistant",
-    "prefix": ".",
-    "hasPrefix": false,
+    "prefix": "$",
+    "hasPrefix": true,
     "autoRestartTime": 3600000
-  },
-  "bard_cookies": [{
-    "domain": ".google.com",
-    "expirationDate": 1727336320.563872,
-    "hostOnly": false,
-    "httpOnly": true,
-    "name": "__Secure-1PSID",
-    "path": "/",
-    "sameSite": "unspecified",
-    "secure": true,
-    "session": false,
-    "storeId": "0",
-    "value": "aAj-WqvDgVdxNRsF731Oh3OGyCFY3okNocTEHOfq_0eJ6TEgbtffj8rapaj0Sdk8yj55Ug."
-  }]
+  }
 }

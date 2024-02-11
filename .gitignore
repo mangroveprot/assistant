@@ -1,5 +1,2 @@
 node_modules/
-0assistant/*
-!0assistant/handler/
-!0assistant/login.js
-file.js
+json/appstate.js

@@ -1,157 +1,88 @@
-const fs = require("fs");
-const path = require("path");
-const assistant_start = require("./0assistant/login.js");
-const express = require("express");
-const chalk = require("chalk");
-const log = require('./logger/log.js');
-const app = express();
-const eventAction = require('./0assistant/handler/eventAction.js');
-const appStatePath = path.join(process.cwd(), "json", "appstate.json");
-const commandPath = path.join(__dirname, "scripts", "commands");
-const eventPath = path.join(__dirname, "scripts", "events");
-const configFilePath = path.join(process.cwd(), "json", "config.json");
-const utils = require("./utils.js");
-const ProgressBar = require("progress");
-global.utils = utils;
-const commandCooldowns = new Map();
-const createFuncMessage = global.utils.message;
-const AdminsBot = global.utils.adminsBot;
-
-process.on('unhandledRejection', error => console.log(error));
-process.on('uncaughtException', error => console.log(error));
-
-const commands = {};
-const commandErrors = [];
-const loadedCommands = [];
-const eventHandlers = [];
-const eventErrors = [];
-
-async function loadCommands() {
-  try {
-    const commandFiles = fs.readdirSync(commandPath).filter((file) => file.endsWith(".js"));
-    const eventFiles = (await fs.promises.readdir(eventPath)).filter((file) => path.extname(file) === ".js");
-    const totalCommands = commandFiles.length;
-    const bar = new ProgressBar(chalk.hex('#ffd700')(":bar") + " :percent :etas", {
-      total: commandFiles.length + eventFiles.length,
-      width: 40,
-      complete: "█",
-      incomplete: " ",
-      renderThrottle: 1,
-    });
-
-    for (let i = 0; i < totalCommands; i++) {
-      const file = commandFiles[i];
-      const startTime = new Date();
-      const commandName = path.basename(file, ".js");
-
-      try {
-        commands[commandName] = require(path.join(commandPath, file));
-        loadedCommands.push(file);
-      } catch (error) {
-        commandErrors.push({
-          fileName: file, error
-        });
-      }
-      bar.tick();
-    }
-
-    for (const file of eventFiles) {
-      try {
-        const eventHandler = require(path.join(eventPath, file));
-        eventHandlers.push(eventHandler);
-        loadedEvents.push({
-          fileName: file
-        }); // Added to keep track of loaded events
-      } catch (error) {
-        eventErrors.push({
-          fileName: file, error
-        });
-      }
-
-      bar.tick();
-    }
-
-    if (bar.complete) {
-      console.log(chalk.green(`\nCommands Loaded: ${totalCommands - commandErrors.length}`));
-
-      if (loadedEvents.length > 0) {
-        console.log(chalk.green(`Events Loaded: ${loadedEvents.length}`));
-        console.log(`[ ${loadedEvents.map(event => event.fileName).join(', ')} ]`);
-      }
-
-      if (commandErrors.length > 0) {
-        console.log(chalk.red(`\nWARN: ${commandErrors.length} command file${commandErrors.length === 1 ? '': 's'} could not be integrated:`));
-
-        for (const {
-          fileName, error
-        } of commandErrors) {
-          console.log(chalk.red(`Error detected in file: ${fileName}`));
-          console.log(chalk.red(`Reason: ${error}`));
-          if (error.stack) {
-            const stackLines = error.stack.split('\n');
-            const lineNumber = stackLines[1].match(/:(\d+):\d+\)$/)[1];
-            console.log(chalk.red(`Line: ${lineNumber}`));
-          }
-          console.log(chalk.red(`━━━━━━━━━━━━━━━━━━━`));
-        }
-        console.log();
-      }
-
-      if (eventErrors.length > 0) {
-        console.log(chalk.red(`\nWARN: ${eventErrors.length} event file${eventErrors.length === 1 ? '': 's'} could not be integrated:`));
-
-        for (const {
-          fileName, error
-        } of eventErrors) {
-          console.log(chalk.red(`Error detected in file: ${fileName}`));
-          console.log(chalk.red(`Reason: ${error}`));
-          if (error.stack) {
-            const stackLines = error.stack.split('\n');
-            const lineNumber = stackLines[1].match(/:(\d+):\d+\)$/)[1];
-            console.log(chalk.red(`Line: ${lineNumber}`));
-          }
-          console.log(chalk.red(`━━━━━━━━━━━━━━━━━━━`));
-        }
-        console.log();
-      }
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-function assistantStart() {
-  try {
-    const fileContent = fs.readFileSync(configFilePath, "utf8");
-    const config = JSON.parse(fileContent);
-
-    if (!config || !config.settings) {
-      throw new Error(`Can't find config.json at ${configFilePath}.`);
-    }
-
-    const {
-      listenEvents,
-      selfListen,
-      autoMarkRead,
-      autoMarkDelivery,
-      forceLogin
-    } = config.settings;
-
-    const {
-      hasPrefix,
-      prefix,
-      autoRestartTime
-    } = config.assistant;
-    const {
-      adminsBot
-    } = global.utils
-    loadCommands();
-    // Rest of the code remains unchanged
-  } catch (error) {
-    console.error(error);
-  }
-}
-
+const fs = require('fs');
+const path = require('path');
+const moment = require('moment-timezone');
 module.exports = {
-  assistantStart: assistantStart
+  config: {
+    name: "help",
+    description: "Shows a list of available commands.",
+    usage: "help <command name>",
+    author: "ViLLAVER",
+    role: 0,
+    cooldown: 5
+  },
+onStart: async function({event, api}) {
+  const cmdFolderPath = path.join(__dirname, '.');
+
+  fs.readdir(cmdFolderPath, (err, files) => {
+    if (err) {
+      console.error('Error reading directory:', err);
+      return;
+    }
+
+    const commandFiles = files.filter(file => path.extname(file).toLowerCase() === '.js');
+    const commandList = commandFiles.map(file => path.parse(file).name);
+
+    const perPage = 10;
+    const totalPages = Math.ceil(commandList.length / perPage);
+
+    const userMessage = event.body.toLowerCase().trim();
+    let page = parseInt(userMessage.split(' ')[1]) || 1;
+    let showAll = false;
+
+    // Check if the user wants to see all commands
+    if (userMessage.includes('-all')) {
+      showAll = true;
+      page = 1; // Reset the page number to 1 when showing all commands
+    }
+
+    if (showAll) {
+      const formattedDate = moment().tz('Asia/Manila').format('DD/MM/YY, hh:mm:ss A');
+
+      const output = [
+        `┌─[ 卄乇乂 @ ${formattedDate} ]`,
+        '├───────────────────',
+        '│ ┌─[ Hexabot Commands ]',
+        '│ │',
+        ...commandList.map(cmd => `│ ├─[ ${cmd.charAt(0).toUpperCase() + cmd.slice(1)} ]`),
+        '│ │',
+        '│ └─[ All Commands ]',
+        '└───────────────────',
+        '',
+        `Total Commands: ${commandList.length}`,
+        `Showing all commands`,
+        '',
+        'Instructions: To see usage of a specific command, type the command followed by "-help." For example, to understand how to use the "getfile" command, type "getfile -help."',
+      ];
+
+      api.sendMessage(output.join('\n'), event.threadID);
+    } else {
+      page = Math.max(1, Math.min(page, totalPages));
+
+      const startIndex = (page - 1) * perPage;
+      const endIndex = Math.min(startIndex + perPage, commandList.length);
+
+      const commandsToShow = commandList.slice(startIndex, endIndex);
+
+      const formattedDate = moment().tz('Asia/Manila').format('DD/MM/YY, hh:mm:ss A');
+
+      const output = [
+        `┌─[ 卄乇乂 @ ${formattedDate} ]`,
+        '├───────────────────',
+        '│ ┌─[ Hexabot Commands ]',
+        '│ │',
+        ...commandsToShow.map(cmd => `│ ├─[ ${cmd.charAt(0).toUpperCase() + cmd.slice(1)} ]`),
+        '│ │',
+        `│ └─[ Page ${page} ]`,
+        '└───────────────────',
+        '',
+        `Total Commands: ${commandList.length}`,
+        `Page ${page}/${totalPages}`,
+        '',
+        'Instructions: To see usage of a specific command, type the command followed by "-help." For example, to understand how to use the "getfile" command, type "getfile -help."',
+      ];
+
+      api.sendMessage(output.join('\n'), event.threadID);
+    }
+  });
+}
 };

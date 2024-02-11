@@ -4,16 +4,49 @@ const path = require("path");
 const mimeDB = require("mime-db");
 const axios = require("axios");
 const configPath = path.join(__dirname, 'json', 'config.json');
-const line = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
-
+const moment = require("moment-timezone");
+const line = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
 //━━━━━━━━━Read Config━━━━━━━━━━//
 const configContent = fs.readFileSync(configPath, 'utf-8');
 const config = JSON.parse(configContent);
 //adminsBot
-const adminsBot = config.admin.adminBot;
+const adminsBot = config.admin.adminsBot
+const API = config.admin.API;
 //━━━━━━━━━━━━━━━━━━━//
 function getExtFromMimeType(mimeType = "") {
   return mimeDB[mimeType] ? (mimeDB[mimeType].extensions || [])[0] || "unknow": "unknow";
+}
+
+function autoRestart() {
+  const {
+    autoRestartTime
+  } = config.assistant;
+  if (config.assistant) {
+    const time = autoRestartTime;
+
+    if (!isNaN(time) && time > 0) {
+      const formattedTime = utils.convertTime(time, true);
+      setTimeout(() => {
+        console.log("AUTO RESTART", "Restarting...");
+        process.exit(2);
+      }, time);
+      return `Scheduled in: ${formattedTime}`;
+    } else if (
+      typeof time === "string" &&
+      time.match(
+        /^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})$/gim
+      )
+    ) {
+      const cron = require("node-cron");
+      cron.schedule(time, () => {
+        console.log("AUTO RESTART", "Restarting...");
+        process.exit(2);
+      });
+      return `Scheduled with cron expression: ${time}`;
+    }
+  }
+
+  return "Auto restart is not configured";
 }
 
 function randomString(max, onlyOnce = false, possible) {
@@ -126,6 +159,15 @@ function removeHomeDir(fullPath) {
   return fullPath;
 }
 
+function getTime(timestamps, format) {
+  // check if just have timestamps -> format = timestamps
+  if (!format && typeof timestamps == 'string') {
+    format = timestamps;
+    timestamps = undefined;
+  }
+  return moment(timestamps).tz("Asia/Manila").format(format);
+}
+
 function message(api, event) {
   async function sendMessageError(err) {
     if (typeof err === "object" && !err.stack)
@@ -218,7 +260,11 @@ const utils = {
   message,
   randomString,
   shortenURL,
-  line
+  line,
+  autoRestart,
+  getTime,
+  API,
+  configPath
 }
 
 module.exports = utils;
