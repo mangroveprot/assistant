@@ -24,6 +24,7 @@ Introducing Assistant, our dynamic Facebook Messenger bot currently in developme
 ## Contributing
 
 Contributions are encouraged! Follow these steps to contribute:
+
 1️⃣Fork the repository and create a new branch.
 
 2️⃣Implement your changes and thoroughly test them.
