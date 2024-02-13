@@ -17,7 +17,8 @@ const {
   isInRole1,
   isInRole2,
   adminsBot,
-  getUserInfo
+  getUserInfo,
+  getName
 } = global.utils;
 
 process.on("unhandledRejection", console.error);
@@ -142,8 +143,7 @@ async function assistantStart() {
       }
 
       const id = api.getCurrentUserID();
-      const getBotName = await getUserInfo(api, id);
-      const accountName = getBotName.name;
+      const accountName = await getName(api, id);
       const botPrefix = hasPrefix ? prefix: "No Prefix";
       const admins = await Promise.all(adminsBot.map(async adminId => {
         try {
