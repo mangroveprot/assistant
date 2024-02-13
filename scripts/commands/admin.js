@@ -27,7 +27,7 @@ module.exports = {
         }
       }
       const configData = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'json', 'config.json'), "utf8"));
-      const adminsBot = configData.admin.adminBot;
+      const adminsBot = configData.admin.adminsBot;
 
       if (!adminsBot.includes(event.senderID)) {
         return message.reply("You do not have permission to use this command.");

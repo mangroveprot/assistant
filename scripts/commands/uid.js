@@ -23,8 +23,7 @@ module.exports = {
     message, event, args
   }) {
     if (event.messageReply) {
-      const replyMessage = event.messageReply.content;
-      return message.reply(`Reply message: ${replyMessage}`);
+      return message.reply(event.messageReply.senderID);
     }
     if (!args[0])
       return message.reply(event.senderID);

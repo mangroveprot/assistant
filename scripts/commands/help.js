@@ -39,9 +39,12 @@ module.exports = {
       const perPage = 10;
       const totalPages = Math.ceil(commandList.length / perPage);
 
-      let page = parseInt(args[0]) || 1;
-      let showAll = args[0] && (args[0].toLowerCase() === "all" || args[0].toLowerCase() === `${myPrefix}all`);
+      let page = parseInt(args[0]);
       if (!args[0]) {
+        page = 1;
+      }
+      let showAll = args[0] && (args[0].toLowerCase() === "all" || args[0].toLowerCase() === `${myPrefix}all`);
+      if (!isNaN(page)) {
         page = Math.max(1, Math.min(page, totalPages));
 
         const startIndex = (page - 1) * perPage;
@@ -85,7 +88,7 @@ module.exports = {
                 '├─────────────────',
                 '│ ┌─[ Available Commands]',
                 '│ │',
-                ...commandList.map(cmd => `│ ├─[ ${myPrefix}${cmd.toUpperCase()}]`),
+                ...commandList.map(cmd => `│ ├─[ ${myPrefix}${cmd.toUpperCase()} ]`),
                 '│ │',
                 '│ └─[ All Commands ]',
                 '└─────────────────',
@@ -100,7 +103,7 @@ module.exports = {
 
               message.reply(output.join('\n'));
             }
-            break;
+
           default:
             const commandName = Object.keys(commands).find(name => commands[name].config && commands[name].config.name === cmdName);
             const findCmd = commands[commandName];
@@ -139,28 +142,28 @@ module.exports = {
             } else {
               return message.reply("Command Not Found");
             }
-          }
         }
-      } catch (error) {
-        console.error(error);
-        message.reply(`Error while processing help command: ${error}`);
-        return
       }
-    }
-  };
-
-  async function loadFiles(filePath, container, errorContainer, loadedContainer) {
-    const files = await fs.readdir(filePath);
-    for (const file of files) {
-      const name = path.basename(file, ".js");
-      try {
-        container[name] = require(path.join(filePath, file));
-        loadedContainer.push(file);
-      } catch (error) {
-        errorContainer.push({
-          fileName: file,
-          error
-        });
-      }
+    } catch (error) {
+      console.error(error);
+      message.reply(`Error while processing help command: ${error}`);
+      return
     }
   }
+};
+
+async function loadFiles(filePath, container, errorContainer, loadedContainer) {
+  const files = await fs.readdir(filePath);
+  for (const file of files) {
+    const name = path.basename(file, ".js");
+    try {
+      container[name] = require(path.join(filePath, file));
+      loadedContainer.push(file);
+    } catch (error) {
+      errorContainer.push({
+        fileName: file,
+        error
+      });
+    }
+  }
+}

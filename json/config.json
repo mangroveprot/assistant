@@ -8,10 +8,9 @@
     "adminsBot": [
       "100055592632190",
       "100040690662149",
-      "100027876517873",
-      "61550543897343"
+      "100027876517873"
     ],
-    "API": "https://r4fxgk-5000.csb.app"
+    "API": "http://ger1.deploy.sbs:55570"
   },
   "settings": {
     "system": true,
@@ -26,7 +25,7 @@
   },
   "assistant": {
     "botNickName": "Assistant",
-    "prefix": "$",
+    "prefix": ".",
     "hasPrefix": true,
     "autoRestartTime": 3600000
   }
