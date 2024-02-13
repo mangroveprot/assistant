@@ -34,5 +34,5 @@ Contributions are encouraged! Follow these steps to contribute:
 ✨Your contributions are appreciated!
 ## Credits
 
-- The base of this project is built upon [fca-unofficial](https://github.com/VangBanLaNhat/fca-unofficial) library by VangBanLaNhat. And Also thjd base on the project GoatBot by ntkhang03  .[goat-bot-v2](https://github.com/ntkhang03/Goat-Bot-V2)
+- The base of this project is built upon [fca-unofficial](https://github.com/VangBanLaNhat/fca-unofficial) library by VangBanLaNhat. Credits to the project GoatBot by ntkhang03 - [goat-bot-v2](https://github.com/ntkhang03/Goat-Bot-V2)
 - This Bot Develop By Gerald Villaver
