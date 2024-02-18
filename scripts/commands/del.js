@@ -11,7 +11,6 @@ module.exports = {
     cooldown: 5,
     role: 2,
     description: "Delete file at cmds",
-    category: "owner",
     usage: " {p}{n} <cmd>",
     example: "del ai"
   },
@@ -21,11 +20,11 @@ module.exports = {
   }) {
 
     if (!adminsBot.includes(event.senderID)) {
-      message.reply("You don't have enough permission to use this command. Only Ohio can do it.");
+      message.reply("You don't have enough permission to use this command.");
       return;
     }
 
-    const fileNamesString = args.join
+    const fileNamesString = args.join(" ");
     const fileNames = fileNamesString.split(',').map(fileName => fileName.trim());
 
     if (fileNames.length === 0) {
@@ -36,7 +35,7 @@ module.exports = {
     const notFoundFiles = [];
 
     fileNames.forEach((fileName) => {
-      const filePath = path.join(__dirname, '..', 'cmds', `${fileName}.js`);
+      const filePath = path.join(__dirname, `${fileName}.js`);
 
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);

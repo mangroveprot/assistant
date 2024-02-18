@@ -10,7 +10,11 @@
       "100040690662149",
       "100027876517873"
     ],
-    "API": "http://ger1.deploy.sbs:55570"
+    "contacts": [
+      "https://www.facebook.com/profile.php?id=61550543897343",
+      "https://www.facebook.com/gerald.c.villaver"
+    ],
+    "API": "https://r4fxgk-5000.csb.app"
   },
   "settings": {
     "system": true,
@@ -21,12 +25,13 @@
     "selfListen": false,
     "autoMarkRead": false,
     "autoMarkDelivery": false,
-    "forceLogin": true
+    "forceLogin": true,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64"
   },
   "assistant": {
     "botNickName": "Assistant",
     "prefix": ".",
-    "hasPrefix": true,
+    "hasPrefix": false,
     "autoRestartTime": 3600000
   }
 }

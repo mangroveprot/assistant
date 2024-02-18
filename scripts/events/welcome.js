@@ -11,7 +11,7 @@ module.exports = {
     author: "ViLLAVER",
     category: "events"
   },
-  
+
   onStart: async function ( {
     message,
     event,
@@ -33,9 +33,17 @@ module.exports = {
             names.push(user[participant.userFbId].name);
             if (names.length === dataAddedParticipants.length) {
               if (names.length > 1) {
-                message.send(`Welcome you guys to ${threadName || "group"}, ${names.join(', ')}`);
+                const output = [
+                  `「 WELCOME YOU GUYS TO THE ${threadName || "GROUP"} 」`,
+                  `${names[0]}`
+                ];
+                message.send(output);
               } else {
-                message.send(`Welcome you to the ${threadName || "group"} ,${names[0]}`);
+                const output = [
+                  `「 WELCOME TO THE ${threadName || "GROUP"} 」`,
+                  `${names[0]}`
+                ];
+                message.send(output);
               }
             }
           });
@@ -48,8 +56,12 @@ module.exports = {
         const pfx = hasPrefix ? prefix: "";
         const output = [
           '┌────[🪶]────⦿',
-          `│ Thank you for adding me in ${threadName || "this group"}☺️`,
-          `│✨ My Prefix: ${prefix}`,
+          `│ Thank you for adding me in ${
+          threadName || "this group"
+          }☺️`,
+          `│✨ My Prefix: $ {
+          prefix
+          }`,
           `│ ⸦•⸧ Type "${pfx}help" to show all my available commands.`,
           '└────────⦿'
         ];

@@ -34,7 +34,7 @@ module.exports = {
 
       const commandList = Object.values(commands).map(cmd => cmd.config.name);
 
-      const cmdName = args[0];
+      const cmdName = args[0].toLowerCase();
 
       const perPage = 10;
       const totalPages = Math.ceil(commandList.length / perPage);
@@ -43,6 +43,7 @@ module.exports = {
       if (!args[0]) {
         page = 1;
       }
+
       let showAll = args[0] && (args[0].toLowerCase() === "all" || args[0].toLowerCase() === `${myPrefix}all`);
       if (!isNaN(page)) {
         page = Math.max(1, Math.min(page, totalPages));

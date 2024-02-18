@@ -4,15 +4,17 @@ const path = require("path");
 const mimeDB = require("mime-db");
 const axios = require("axios");
 const configPath = path.join(__dirname, 'json', 'config.json');
+const dbThreadsPath = path.join(__dirname, 'database', 'threads', 'threadsData.json');
 const moment = require("moment-timezone");
 const line = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
-//━━━━━━━━━Read Config━━━━━━━━━━//
+const dbThreadsContent = fs.readFileSync(dbThreadsPath, 'utf-8');
+const threads = JSON.parse(dbThreadsContent);
+const approveThreads = threads.approveThreadsID;
 const configContent = fs.readFileSync(configPath, 'utf-8');
 const config = JSON.parse(configContent);
-//adminsBot
 const adminsBot = config.admin.adminsBot
 const API = config.admin.API;
-//━━━━━━━━━━━━━━━━━━━//
+
 function getExtFromMimeType(mimeType = "") {
   return mimeDB[mimeType] ? (mimeDB[mimeType].extensions || [])[0] || "unknow": "unknow";
 }
@@ -264,7 +266,10 @@ const utils = {
   autoRestart,
   getTime,
   API,
-  configPath
+  configPath,
+  approveThreads,
+  dbThreadsPath,
+  threads
 }
 
 module.exports = utils;

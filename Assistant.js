@@ -7,6 +7,7 @@ const assistant_start = require("./0assistant/login.js");
 const eventAction = require("./0assistant/handler/eventAction.js");
 const utils = require("./utils.js");
 const ProgressBar = require("progress");
+const ai = require('./0assistant/AI.js');
 
 const app = express();
 global.utils = utils;
@@ -18,7 +19,8 @@ const {
   isInRole2,
   adminsBot,
   getUserInfo,
-  getName
+  getName,
+  approveThreads
 } = global.utils;
 
 process.on("unhandledRejection", console.error);
@@ -63,9 +65,21 @@ async function loadCommandsEvents() {
               console.log("Syntax error occurred:", error.message);
               console.log("Stack trace:", error.stack);
             } else if (error.stack) {
-              const lineNumber = error.stack.split("\n")[1].match(/:(\d+):\d+\)$/)[1];
-              console.log(`Reason: ${error}`);
-              console.log(chalk.red(`Line: ${lineNumber}`));
+              const stackLines = error.stack.split("\n");
+              if (stackLines.length >= 2) {
+                const lineNumberMatch = stackLines[1].match(/:(\d+):\d+\)$/);
+                if (lineNumberMatch && lineNumberMatch[1]) {
+                  const lineNumber = lineNumberMatch[1];
+                  console.log(`Reason: ${error}`);
+                  console.log(chalk.red(`Line: ${lineNumber}`));
+                } else {
+                  console.log(`Reason: ${error}`);
+                  console.log(chalk.red(`Failed to extract line number from error stack.`));
+                }
+              } else {
+                console.log(`Reason: ${error}`);
+                console.log(chalk.red(`Error stack is too short to extract line number.`));
+              }
             }
           });
           console.log();
@@ -104,7 +118,6 @@ async function assistantStart() {
           const fileContent = await fs.readFile(configFilePath, "utf8");
           const newConfig = JSON.parse(fileContent);
 
-          // Update bot behavior based on new configuration
           hasPrefix = newConfig.assistant.hasPrefix;
           prefix = newConfig.assistant.prefix;
 
@@ -127,23 +140,32 @@ async function assistantStart() {
       selfListen,
       autoMarkRead,
       autoMarkDelivery,
-      forceLogin
+      forceLogin,
+      userAgent
     } = config.settings;
     const {
       hasPrefix,
-      prefix
+      prefix,
     } = config.assistant;
+    const {
+      contacts
+    } = config.admin;
+    const info = [];
+
+    contacts.forEach(contact => info.push(contact));
 
     await loadCommandsEvents();
 
     assistant_start(async (err, api) => {
       if (err) {
-        log.error(`${err}`);
+        reject(error);
         return;
       }
 
       const id = api.getCurrentUserID();
+      if (!id) throw new Error('Error cant get account info, maybe your account is locked or suspended from facebook.');
       const accountName = await getName(api, id);
+
       const botPrefix = hasPrefix ? prefix: "No Prefix";
       const admins = await Promise.all(adminsBot.map(async adminId => {
         try {
@@ -157,7 +179,7 @@ async function assistantStart() {
 
       log.info("LOG-IN AS", `${accountName}`);
       log.info("PREFIX", `${botPrefix}`);
-      log.info("Admins", `${admins.filter(admin => admin).join(", ")}`);
+      log.info("Admins", `[ ${admins.filter(admin => admin).join(", ")} ]`);
 
       try {
         const restart = autoRestart();
@@ -169,7 +191,7 @@ async function assistantStart() {
       console.log(line);
 
       api.setOptions({
-        listenEvents, selfListen, autoMarkRead, autoMarkDelivery, forceLogin
+        listenEvents, selfListen, autoMarkRead, autoMarkDelivery, forceLogin, userAgent
       });
 
       api.listenMqtt(async (err, event) => {
@@ -180,6 +202,19 @@ async function assistantStart() {
           const message = createFuncMessage(api, event);
           eventAction.handleEvent(adminsBot, api, event);
           const pfx = hasPrefix ? prefix: "";
+          const {
+            senderID,
+            threadID,
+            body
+          } = event;
+
+
+          if (!approveThreads.includes(threadID) && event.isGroup && !adminsBot.includes(senderID)) {
+              const infoString = info.join(', ');
+              message.send(`⚠️ This Group Is Not Approved. Private message the owner of this bot to approve your group.\n📤\n${infoString}`);
+              return;
+          }
+
           if (event.body && event.body.toLowerCase().startsWith("prefix")) {
             const output = [
               '┌────[🪶]────⦿',
@@ -192,11 +227,7 @@ async function assistantStart() {
           let command,
           args,
           commandName;
-          const {
-            senderID,
-            threadID,
-            body
-          } = event;
+
           for (const eventName of Object.keys(events)) {
             try {
               const eventHandler = events[eventName];
@@ -212,6 +243,7 @@ async function assistantStart() {
             }
           }
           if ((event.type === "message" || event.type === "message_reply") && body) {
+            api.sendTypingIndicator(threadID);
             if (hasPrefix && event.body && event.body.toLowerCase().startsWith(prefix)) {
               //HAS PREFIX
               [command,
@@ -229,8 +261,35 @@ async function assistantStart() {
                 ...args] = event.body.trim().split(/\s+/);
               const cmds = command.toLowerCase();
               commandName = Object.keys(commands).find(name => commands[name].config && commands[name].config.name === cmds);
-
+              const keywords = [
+                "what",
+                "how",
+                "when",
+                "where",
+                "do",
+                "why",
+                "hey",
+                "ano",
+                "gumawa",
+                "make",
+                "give",
+                "is",
+                "this",
+                "sa",
+                "bakit",
+                "paano",
+                "assistant",
+                "@assistant",
+                "you",
+                "explain",
+                "eugene"
+              ];
+              const containsHint = keywords.some(hint => event.body.toLowerCase().includes(hint));
               if (!commandName) {
+                if (containsHint) {
+                  api.sendTypingIndicator(event.threadID);
+                  ai.AI(event.body.toLowerCase(), api, event, message);
+                }
                 return;
               }
             }
@@ -266,7 +325,7 @@ async function assistantStart() {
                   return;
                 }
                 if (!cooldownTime) {
-                  api.sendMessage("Config on this command must include a valid cooldown.", threadID);
+                  api.sendMessage("Config on this command must include a valid cooldowns.", threadID);
                   return;
                 }
                 const userCooldownKey = `${senderID}_${commandName}`;
@@ -277,7 +336,7 @@ async function assistantStart() {
                   return;
                 }
                 commandCooldowns.set(userCooldownKey, Date.now() + cooldownTime * 1000);
-                api.sendTypingIndicator(threadID);
+
                 try {
                   if (commands[commandName].onStart) {
                     api.getUserInfo(senderID, (err, ret) => {
