@@ -33,9 +33,10 @@ module.exports = {
       await loadFiles(cmdFolderPath, commands, cmdErrors, loadedCmds);
 
       const commandList = Object.values(commands).map(cmd => cmd.config.name);
-
-      const cmdName = args[0].toLowerCase();
-
+      let cmdName;
+      if(args[0]){
+       cmdName = args[0].toLowerCase();
+      }
       const perPage = 10;
       const totalPages = Math.ceil(commandList.length / perPage);
 
