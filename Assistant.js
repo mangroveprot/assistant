@@ -111,22 +111,6 @@ async function loadFiles(filePath, container, errorContainer, loadedContainer, b
 
 async function assistantStart() {
   try {
-    fs.watch(configFilePath, async (eventType, filename) => {
-      if (eventType === 'change') {
-        console.log('Configuration file has changed. Reloading...');
-        try {
-          const fileContent = await fs.readFile(configFilePath, "utf8");
-          const newConfig = JSON.parse(fileContent);
-
-          hasPrefix = newConfig.assistant.hasPrefix;
-          prefix = newConfig.assistant.prefix;
-
-          console.log('Configuration reloaded successfully.');
-        } catch (error) {
-          console.error('Error reloading configuration:', error);
-        }
-      }
-    });
     const fileContent = await fs.readFile(configFilePath,
       "utf8");
     const config = JSON.parse(fileContent);
@@ -163,7 +147,7 @@ async function assistantStart() {
       }
 
       const id = api.getCurrentUserID();
-      if (!id) throw new Error('Error cant get account info, maybe your account is locked or suspended from facebook.');
+      if (!id) throw new Error('Error cant get account info, maybe your account is locked or suspended from facebook.'); return;
       const accountName = await getName(api, id);
 
       const botPrefix = hasPrefix ? prefix: "No Prefix";
@@ -210,9 +194,9 @@ async function assistantStart() {
 
 
           if (!approveThreads.includes(threadID) && event.isGroup && !adminsBot.includes(senderID)) {
-              const infoString = info.join(', ');
-              message.send(`⚠️ This Group Is Not Approved. Private message the owner of this bot to approve your group.\n📤\n${infoString}`);
-              return;
+            const infoString = info.join(', ');
+            message.send(`⚠️ This Group Is Not Approved. Private message the owner of this bot to approve your group.\n📤\n${infoString}`);
+            return;
           }
 
           if (event.body && event.body.toLowerCase().startsWith("prefix")) {
@@ -282,6 +266,10 @@ async function assistantStart() {
                 "@assistant",
                 "you",
                 "explain",
+                "halimbawa",
+                "ng",
+                "ng",
+                "na",
                 "eugene"
               ];
               const containsHint = keywords.some(hint => event.body.toLowerCase().includes(hint));

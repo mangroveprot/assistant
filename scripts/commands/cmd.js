@@ -8,7 +8,7 @@ module.exports = {
     usage: "install <command_name> <code>",
     version: "1.0.0",
     author: "Your Name",
-    role: 0,
+    role: 2,
     // Set the required role level if necessary
     cooldown: 5,
     example: "install mycommand const myCommand = () => { console.log('My command executed'); }"

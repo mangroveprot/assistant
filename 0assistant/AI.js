@@ -46,21 +46,6 @@ async function AI(prompts, api, event, message) {
   }
 
   const userID = event.senderID;
-  const phrases = [
-    "🔍 | Just a moment, I'm fetching the best answers for you.",
-    "🔍 | Please hold on while I retrieve the information you're looking for.",
-    "🔍 | I appreciate your patience as I gather the most relevant answers for you.",
-    "✨ | Hang tight, I'm working on finding the appropriate responses.",
-    "💫 | Please bear with me as I fetch the answers you need.",
-    "🤖 | Almost there! I'm in the process of retrieving the requested information.",
-    "✨ | Just a brief pause while I search for the most accurate responses.",
-    "🔍 | I'm currently gathering the best answers for you.",
-    "✨ | I'm actively fetching the information you're seeking - it won't be long!",
-    "(⁠ ╹⁠▽⁠╹⁠ )| I'm on it! Just a moment while I fetch the most suitable answers for you."
-  ];
-
-  const waitQue = phrases[Math.floor(Math.random() * phrases.length)];
-  const waitingMessage = await message.reply(waitQue);
   const name = await getName(api, userID);
   const {
     senderID
@@ -75,7 +60,7 @@ async function AI(prompts, api, event, message) {
       if (!log) {
         await message.reply(response.reply);
       }
-      await message.unsend(waitingMessage.messageID);
+      
     });
     return;
   } catch (error) {
@@ -97,7 +82,7 @@ async function AI(prompts, api, event, message) {
       if (!log) {
         await message.reply(response.reply);
       }
-      await message.unsend(waitingMessage.messageID);
+      
     });
     return;
   } catch (error) {
@@ -112,7 +97,7 @@ async function AI(prompts, api, event, message) {
     await message.reply({
       body: res
     });
-    await message.unsend(waitingMessage.messageID);
+    
     return;
   } catch (error) {
     log.error("AI",
